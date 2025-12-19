@@ -1,0 +1,12 @@
+{
+  "name": { "type": "string", "label": "姓名" },
+  "age": { "type": "number", "label": "年龄" },
+  "contact": {
+    "type": "object",
+    "label": "联系方式",
+    "fields": {
+      "phone": { "type": "string", "label": "电话" },
+      "email": { "type": "string", "label": "邮箱" }
+    }
+  }
+}
