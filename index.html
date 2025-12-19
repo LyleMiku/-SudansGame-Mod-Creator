@@ -4,6 +4,17 @@
   <meta charset="UTF-8" />
   <title>在线 JSON 模板编辑器</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy"
+  content="
+    default-src 'self';
+    script-src 'self';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data:;
+    connect-src 'self';
+    object-src 'none';
+    base-uri 'none';
+    frame-ancestors 'none';
+  ">
   <style>
     body { font-family: system-ui; background:#f7f8fa; padding:16px; max-width:960px; margin:auto; }
     h1 { font-size:20px; margin-bottom:12px; }
