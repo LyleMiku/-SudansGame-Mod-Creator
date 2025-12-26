@@ -236,9 +236,14 @@ function exportJSON() {
 document.getElementById('jsonInput').onchange = e => {
   const r = new FileReader();
   r.onload = ev => {
-    const json = JSON.parse(ev.target.result);
-    fill(template, json);
-    updateOutput();
+    try {
+      const json = JSON.parse(ev.target.result);
+      fill(template, json);
+      updateOutput();
+    } catch (err) {
+      alert('❌ 文件格式不正确或不符合模板结构');
+      console.error(err);
+    }
   };
   r.readAsText(e.target.files[0]);
 };
