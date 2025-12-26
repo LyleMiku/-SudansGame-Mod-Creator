@@ -175,4 +175,95 @@ function createInput(field, id) {
   if (field.type === 'boolean') {
     input = document.createElement('input'); input.type='checkbox';
   } else {
-    input = document.createElement('input'
+    input = document.createElement('input');
+    input.type = field.type === 'number' ? 'number' : 'text';
+  }
+  input.id = id;
+  input.oninput = updateOutput;
+  div.appendChild(input);
+  return div;
+}
+
+function addArrayItem(field, container, path) {
+  const idx = container.children.length;
+  const box = document.createElement('div');
+  box.className = 'array-item';
+  renderFields(field.item.fields, box, [...path, idx]);
+  const del = document.createElement('button');
+  del.textContent = '删除';
+  del.onclick = () => { box.remove(); updateOutput(); };
+  box.appendChild(del);
+  container.appendChild(box);
+}
+
+function collect(fields, path=[]) {
+  const obj = {};
+  for (const key in fields) {
+    const field = fields[key];
+    if (field.type === 'object') {
+      obj[key] = collect(field.fields, [...path, key]);
+    }
+    else if (field.type === 'array') {
+      const arr = [];
+      document.querySelectorAll('.array-item').forEach((box,i)=>{
+        arr.push(collect(field.item.fields,[...path,key,i]));
+      });
+      obj[key] = arr;
+    }
+    else {
+      const el = document.getElementById([...path,key].join('.'));
+      obj[key] = field.type==='boolean' ? el.checked : el.value||null;
+    }
+  }
+  return obj;
+}
+
+function updateOutput() {
+  if (!template) return;
+  const data = collect(template);
+  document.getElementById('output').textContent = JSON.stringify(data,null,2);
+}
+
+function exportJSON() {
+  const data = collect(template);
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'data.json';
+  a.click();
+}
+
+document.getElementById('jsonInput').onchange = e => {
+  const r = new FileReader();
+  r.onload = ev => {
+    const json = JSON.parse(ev.target.result);
+    fill(template, json);
+    updateOutput();
+  };
+  r.readAsText(e.target.files[0]);
+};
+
+function fill(fields, data, path=[]) {
+  for (const key in fields) {
+    const field = fields[key];
+    if (field.type === 'object') {
+      fill(field.fields, data?.[key]||{}, [...path,key]);
+    } else if (field.type !== 'array') {
+      const el = document.getElementById([...path,key].join('.'));
+      if (el) el[field.type==='boolean'?'checked':'value'] = data?.[key] ?? '';
+    }
+  }
+}
+
+loadTemplate(TEMPLATE_INDEX[0].url);
+
+function expandAll() {
+  document.querySelectorAll('fieldset').forEach(fs => fs.classList.remove('collapsed'));
+}
+
+function collapseAll() {
+  document.querySelectorAll('fieldset').forEach(fs => fs.classList.add('collapsed'));
+}
+</script>
+</body>
+</html>
