@@ -238,10 +238,15 @@ document.getElementById('jsonInput').onchange = e => {
   r.onload = ev => {
     try {
       const json = JSON.parse(ev.target.result);
-      fill(template, json);
+      const result = fill(template, json);
       updateOutput();
+      if (result.success) {
+        alert('文件上传成功！');
+      } else {
+        alert('❌ 文件字段不匹配：\n' + result.errors.join('\n'));
+      }
     } catch (err) {
-      alert('❌ 文件格式不正确或不符合模板结构');
+      alert('❌ 文件格式不正确');
       console.error(err);
     }
   };
@@ -249,15 +254,37 @@ document.getElementById('jsonInput').onchange = e => {
 };
 
 function fill(fields, data, path=[]) {
+  let errors = [];
+  let success = true;
   for (const key in fields) {
     const field = fields[key];
+    const el = document.getElementById([...path, key].join('.'));
     if (field.type === 'object') {
-      fill(field.fields, data?.[key]||{}, [...path,key]);
-    } else if (field.type !== 'array') {
-      const el = document.getElementById([...path,key].join('.'));
-      if (el) el[field.type==='boolean'?'checked':'value'] = data?.[key] ?? '';
+      if (data?.[key]) {
+        success = success && fill(field.fields, data?.[key], [...path, key]).success;
+      } else {
+        errors.push('缺少对象字段：' + [...path, key].join('.'));
+        success = false;
+      }
+    } else if (field.type === 'array') {
+      if (Array.isArray(data?.[key])) {
+        data[key].forEach((item, idx) => {
+          success = success && fill(field.item.fields, item, [...path, key, idx]).success;
+        });
+      } else {
+        errors.push('缺少数组字段：' + [...path, key].join('.'));
+        success = false;
+      }
+    } else {
+      if (data?.[key] !== undefined) {
+        el.value = data[key];
+      } else {
+        errors.push('缺少字段：' + [...path, key].join('.'));
+        success = false;
+      }
     }
   }
+  return { success, errors };
 }
 
 loadTemplate(TEMPLATE_INDEX[0].url);
